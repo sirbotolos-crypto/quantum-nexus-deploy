@@ -1,0 +1,33 @@
+- alias: "Luce Notte (Migliorata v2)"
+  id: "1763929906863"
+  description: "Accensione luce notte corridoio su rilevamento movimento in Ingresso, Camera o Soggiorno"
+  mode: restart
+  trigger:
+    - platform: state
+      entity_id:
+        - binary_sensor.sensore_mov_occupancy      # Ingresso/Corridoio
+        - binary_sensor.sensore_mov_e_lux_occupancy # Camera
+        - binary_sensor.salotto_movimento          # Soggiorno
+      to: "on"
+  condition:
+    - condition: or
+      conditions:
+        - condition: state
+          entity_id: sun.sun
+          state: "below_horizon"
+        - condition: numeric_state
+          entity_id: sensor.sensore_mov_e_lux_illuminance
+          below: 10
+  action:
+    - service: switch.turn_on
+      target:
+        entity_id: switch.luce_notte_corridoio
+    - wait_template: >
+        {{ is_state('binary_sensor.sensore_mov_occupancy', 'off') and
+           is_state('binary_sensor.sensore_mov_e_lux_occupancy', 'off') and
+           is_state('binary_sensor.salotto_movimento', 'off') }}
+      timeout: "00:05:00"
+    - delay: "00:01:00"
+    - service: switch.turn_off
+      target:
+        entity_id: switch.luce_notte_corridoio
